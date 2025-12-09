@@ -25,6 +25,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'balance',
+    ];
+
+    protected $casts = [
+        'balance' => 'decimal:8',
     ];
 
     /**

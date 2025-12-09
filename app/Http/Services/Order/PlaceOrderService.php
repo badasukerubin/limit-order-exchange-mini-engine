@@ -2,6 +2,7 @@
 
 namespace App\Http\Services\Order;
 
+use App\Enums\SideType;
 use App\Enums\StatusType;
 use App\Models\Asset;
 use App\Models\Order;
@@ -18,8 +19,9 @@ final class PlaceOrderService
     {
         return DB::transaction(function () use ($user, $data) {
             $order = match ($data['side']) {
-                'buy' => $this->handleBuyOrder($user, $data),
-                'sell' => $this->handleSellOrder($user, $data),
+                SideType::Buy->value => $this->handlePlaceBuyOrder($user, $data),
+                SideType::Sell->value => $this->handlePlaceSellOrder($user, $data),
+                default => throw new UnprocessableEntityHttpException('Invalid order side'),
             };
 
             return Order::create([
@@ -38,7 +40,7 @@ final class PlaceOrderService
      * @param  array{symbol:string,side:string,price:float,amount:float}  $data
      * @return array{user:User,locked_amount:string}
      */
-    public function handleBuyOrder(User $user, array $data): array
+    public function handlePlaceBuyOrder(User $user, array $data): array
     {
         $cost = bcmul($data['price'], $data['amount'], 8);
 
@@ -61,7 +63,7 @@ final class PlaceOrderService
      * @param  array{symbol:string,side:string,price:float,amount:float}  $data
      * @return array{user:User,locked_amount:string}
      */
-    public function handleSellOrder(User $user, array $data): array
+    public function handlePlaceSellOrder(User $user, array $data): array
     {
         $asset = Asset::where('user_id', $user->id)
             ->where('symbol', $data['symbol'])
