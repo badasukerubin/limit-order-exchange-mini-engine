@@ -7,7 +7,7 @@ use App\Models\User;
 it('prevents access to profiles for unauthenticated users', function () {
     $this->getJson(route('api.v1.profile.index'))
         ->assertStatus(401);
-})->only();
+});
 
 it('returns user balance and asset holdings', function () {
     $user = User::factory()->create([
@@ -28,7 +28,7 @@ it('returns user balance and asset holdings', function () {
         'locked_amount' => 0,
     ]);
 
-    $this->actingAs($user, 'sanctum')
+    $this->actingAs($user)
         ->getJson(route('api.v1.profile.index'))
         ->assertOk()
         ->assertJsonStructure([
@@ -57,4 +57,4 @@ it('returns user balance and asset holdings', function () {
             'locked_amount' => '0.10000000',
             'total_amount' => '0.60000000',
         ]);
-})->only();
+});

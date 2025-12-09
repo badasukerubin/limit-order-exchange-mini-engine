@@ -26,7 +26,7 @@ class Asset extends Model
 
     public function getTotalAmountAttribute(): float
     {
-        return (float) $this->amount + (float) $this->locked_amount;
+        return bcadd($this->amount, $this->locked_amount, 8);
     }
 
     public function user(): BelongsTo
