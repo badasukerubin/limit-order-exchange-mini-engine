@@ -6,7 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 use function App\Helpers\format_currency;
 
-class UserResource extends JsonResource
+class AssetResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,17 +14,16 @@ class UserResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-    public function toArray($request = null)
+    public function toArray($request): array
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'balance' => format_currency($this->balance),
-            'assets' => AssetResource::collection($this->whenLoaded('assets')),
+            'symbol' => $this->symbol,
+            'amount' => format_currency($this->amount),
+            'locked_amount' => format_currency($this->locked_amount),
+            'total_amount' => format_currency($this->total_amount),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'two_factor' => $this->hasEnabledTwoFactorAuthentication(), // required in Vue for TwoFactoreAuthentication.
         ];
     }
 }

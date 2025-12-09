@@ -10,6 +10,8 @@ class Asset extends Model
 {
     use HasFactory;
 
+    protected $appends = ['total_amount'];
+
     protected $fillable = [
         'user_id',
         'symbol',
@@ -21,6 +23,11 @@ class Asset extends Model
         'amount' => 'decimal:8',
         'locked_amount' => 'decimal:8',
     ];
+
+    public function getTotalAmountAttribute(): float
+    {
+        return (float) $this->amount + (float) $this->locked_amount;
+    }
 
     public function user(): BelongsTo
     {
