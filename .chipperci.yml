@@ -1,0 +1,23 @@
+version: 1
+
+environment:
+  php: 8.3
+  node: 16
+
+pipeline:
+  - name: Setup
+    cmd: |
+      cp -v .env.testing .env
+      composer install --no-interaction --prefer-dist --optimize-autoloader
+      php artisan key:generate
+      mkdir -p database
+      touch database/database.sqlite
+      php artisan migrate
+
+  - name: Compile Assets
+    cmd: |
+      npm install
+      npm run build
+
+  - name: Run Tests
+    cmd: phpunit
