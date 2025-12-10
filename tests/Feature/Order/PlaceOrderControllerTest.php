@@ -3,14 +3,22 @@
 use App\Enums\SideType;
 use App\Enums\StatusType;
 use App\Enums\SymbolType;
+use App\Jobs\Order\MatchOrderJob;
 use App\Models\Asset;
 use App\Models\User;
+use Illuminate\Support\Facades\Queue;
 
 use function App\Helpers\format_currency;
+
+beforeEach(function () {
+    Queue::fake();
+});
 
 it('prevents access to placing orders for unauthenticated users', function () {
     $this->postJson(route('api.v1.orders.place'))
         ->assertStatus(401);
+
+    Queue::assertNothingPushed();
 });
 
 it('creates a BUY order and reserves USD balance', function () {
@@ -25,7 +33,7 @@ it('creates a BUY order and reserves USD balance', function () {
         'amount' => $amount,
     ];
 
-    $this->actingAs($user)
+    $response = $this->actingAs($user)
         ->postJson(route('api.v1.orders.place'), $payload)
         ->assertCreated()
         ->assertJsonPath('data.status', StatusType::Open->value);
@@ -42,6 +50,12 @@ it('creates a BUY order and reserves USD balance', function () {
         'locked_amount' => format_currency($price * $amount),
         'status' => StatusType::Open->value,
     ]);
+
+    $orderId = $response->json('data.id');
+
+    Queue::assertPushed(MatchOrderJob::class, function ($job) use ($orderId) {
+        return $job->orderId === $orderId;
+    });
 });
 
 it('fails creating BUY order if insufficient USD balance', function () {
@@ -57,6 +71,18 @@ it('fails creating BUY order if insufficient USD balance', function () {
     $this->actingAs($user)
         ->postJson(route('api.v1.orders.place'), $payload)
         ->assertStatus(422);
+
+    expect($user->balance)->toEqual(1000);
+
+    $this->assertDatabaseMissing('orders', [
+        'user_id' => $user->id,
+        'symbol' => SymbolType::BTC->value,
+        'side' => SideType::Buy->value,
+        'price' => format_currency(50000),
+        'amount' => format_currency(0.1),
+    ]);
+
+    Queue::assertNothingPushed();
 });
 
 it('creates SELL order and locks assets', function () {
@@ -76,7 +102,7 @@ it('creates SELL order and locks assets', function () {
         'amount' => 0.5,
     ];
 
-    $this->actingAs($user)
+    $response = $this->actingAs($user)
         ->postJson(route('api.v1.orders.place'), $payload)
         ->assertCreated();
 
@@ -99,6 +125,12 @@ it('creates SELL order and locks assets', function () {
         'locked_amount' => format_currency(0.5),
         'status' => StatusType::Open->value,
     ]);
+
+    $orderId = $response->json('data.id');
+
+    Queue::assertPushed(MatchOrderJob::class, function ($job) use ($orderId) {
+        return $job->orderId === $orderId;
+    });
 });
 
 it('fails creating SELL order if insufficient asset amount', function () {
@@ -120,4 +152,14 @@ it('fails creating SELL order if insufficient asset amount', function () {
     $this->actingAs($user)
         ->postJson(route('api.v1.orders.place'), $payload)
         ->assertStatus(422);
+
+    $this->assertDatabaseMissing('orders', [
+        'user_id' => $user->id,
+        'symbol' => SymbolType::BTC->value,
+        'side' => SideType::Sell->value,
+        'price' => format_currency(50000),
+        'amount' => format_currency(1),
+    ]);
+
+    Queue::assertNothingPushed();
 });

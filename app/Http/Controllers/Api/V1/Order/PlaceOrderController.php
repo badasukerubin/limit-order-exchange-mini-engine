@@ -16,7 +16,7 @@ class PlaceOrderController extends Controller
     {
         $order = $this->placeOrderService->handle($request->user(), $request->validated());
 
-        // MatchOrderJob::dispatch($order->id);
+        MatchOrderJob::dispatch($order->id);
 
         return (new OrderResource($order))->response()->setStatusCode(201);
     }
