@@ -40,7 +40,7 @@ final class PlaceOrderService
      * @param  array{symbol:string,side:string,price:float,amount:float}  $data
      * @return array{user:User,locked_amount:string}
      */
-    public function handlePlaceBuyOrder(User $user, array $data): array
+    private function handlePlaceBuyOrder(User $user, array $data): array
     {
         $cost = bcmul($data['price'], $data['amount'], 8);
 
@@ -63,7 +63,7 @@ final class PlaceOrderService
      * @param  array{symbol:string,side:string,price:float,amount:float}  $data
      * @return array{user:User,locked_amount:string}
      */
-    public function handlePlaceSellOrder(User $user, array $data): array
+    private function handlePlaceSellOrder(User $user, array $data): array
     {
         $asset = Asset::where('user_id', $user->id)
             ->where('symbol', $data['symbol'])

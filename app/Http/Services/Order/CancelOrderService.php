@@ -38,7 +38,7 @@ final class CancelOrderService
         });
     }
 
-    public function handleCancelBuyOrder(Order $order): void
+    private function handleCancelBuyOrder(Order $order): void
     {
         $user = User::where('id', $order->user_id)
             ->lockForUpdate()
@@ -49,7 +49,7 @@ final class CancelOrderService
         $user->save();
     }
 
-    public function handleCancelSellOrder(Order $order): void
+    private function handleCancelSellOrder(Order $order): void
     {
         $asset = Asset::where('user_id', $order->user_id)
             ->where('symbol', $order->symbol)
