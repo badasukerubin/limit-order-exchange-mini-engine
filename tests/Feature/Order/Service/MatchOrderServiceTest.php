@@ -111,7 +111,7 @@ it('matches a valid BUY and SELL order fully', function () {
             && bccomp($trade->total, $expectedTotal, 8) === 0
             && bccomp($trade->fee, $expectedFee, 8) === 0;
     });
-})->only();
+});
 
 it('does not match if amounts differ (no partials allowed)', function () {
     $buyer = User::factory()->create(['balance' => 10000]);
@@ -168,7 +168,7 @@ it('does not match if amounts differ (no partials allowed)', function () {
 
     // No event dispatched
     Event::assertNotDispatched(OrderMatchedEvent::class);
-})->only();
+});
 
 it('does nothing when counter order does not meet price rule', function () {
     $buyer = User::factory()->create(['balance' => 5000]);
@@ -225,7 +225,7 @@ it('does nothing when counter order does not meet price rule', function () {
 
     // No event dispatched
     Event::assertNotDispatched(OrderMatchedEvent::class);
-})->only();
+});
 
 it('is idempotent and safe to run multiple times', function () {
     $buyer = User::factory()->create(['balance' => 5000]);
@@ -317,4 +317,4 @@ it('is idempotent and safe to run multiple times', function () {
 
     // OrderMatchedEvent is dispatched only once
     Event::assertDispatched(OrderMatchedEvent::class, 1);
-})->only();
+});

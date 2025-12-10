@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Order\CancelOrderController;
+use App\Http\Controllers\Api\V1\Order\OpenOrdersController;
 use App\Http\Controllers\Api\V1\Order\PlaceOrderController;
 use App\Http\Controllers\Api\V1\Profile\ProfileController;
 use App\Http\Controllers\Api\V1\User\MeController;
@@ -19,6 +20,8 @@ Route::group(['prefix' => 'v1', 'as' => 'api.v1.', 'middleware' => ['auth:sanctu
     });
 
     Route::group(['prefix' => 'orders', 'as' => 'orders.'], function () {
+        Route::get('/', OpenOrdersController::class)->name('index');
+
         Route::post('/', PlaceOrderController::class)->name('place');
 
         Route::post('/{order}/cancel', CancelOrderController::class)->name('cancel');
