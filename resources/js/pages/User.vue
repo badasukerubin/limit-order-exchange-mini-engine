@@ -2,7 +2,7 @@
   <div class="container px-2 md:px-0 mx-auto space-y-2">
     <div class="md:flex md:justify-between md:space-x-2 py-6">
       <div class="md:w-1/3 pb-4">
-        <h3 class="text-xl">Profil</h3>
+        <h3 class="text-xl">Profile</h3>
         <p class="mt-1 text-sm text-gray-600">
           Update your account's profile information and email address.
         </p>
@@ -33,9 +33,9 @@
 </template>
 
 <script>
-import TwoFactoreAuthentication from '@/components/user/TwoFactoreAuthentication.vue'
-import ProfileUpdate from '@/components/user/ProfileUpdate.vue'
-import PasswordUpdate from '@/components/user/PasswordUpdate.vue'
+import TwoFactoreAuthentication from '@/components/user/TwoFactoreAuthentication.vue';
+import ProfileUpdate from '@/components/user/ProfileUpdate.vue';
+import PasswordUpdate from '@/components/user/PasswordUpdate.vue';
 
 export default {
   components: {
@@ -43,5 +43,5 @@ export default {
     ProfileUpdate,
     PasswordUpdate,
   }
-}
+};
 </script>

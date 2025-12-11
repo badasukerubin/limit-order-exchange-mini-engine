@@ -11,6 +11,12 @@
           </router-link>
         </li>
         <li>
+          <router-link :to="{ name: 'OrdersWalletOverview' }"
+            class="hover:text-gray-700 p-2 rounded flex items-center space-x-2">
+            <span>Wallet Overview</span>
+          </router-link>
+        </li>
+        <li>
           <router-link :to="{ name: 'User' }"
             class="hover:text-gray-700 p-2 rounded flex items-center space-x-2 font-semibold">
             <span>{{ currentUser?.name }}</span>
@@ -27,14 +33,14 @@
 </template>
 
 <script>
-import { mapActions, mapStores } from 'pinia'
-import { useAuthStore } from '@/stores/auth.js'
+import { mapActions, mapStores } from 'pinia';
+import { useAuthStore } from '@/stores/auth.js';
 
 export default {
   computed: {
     ...mapStores(useAuthStore),
     currentUser() {
-      return this.authStore?.currentUser
+      return this.authStore?.currentUser;
     },
   },
   methods: {
@@ -42,9 +48,9 @@ export default {
     logoutUser() {
       this.logout()
         .then(() => {
-          this.$router.push({ name: 'Login' })
-        })
+          this.$router.push({ name: 'Login' });
+        });
     },
   },
-}
+};
 </script>

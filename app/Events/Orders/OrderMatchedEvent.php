@@ -29,4 +29,12 @@ class OrderMatchedEvent implements ShouldBroadcast
             new PrivateChannel('user.'.$this->trade->buyer_id), new PrivateChannel('user.'.$this->trade->seller_id),
         ];
     }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'order.matched';
+    }
 }
