@@ -8,7 +8,7 @@ use App\Models\Order;
 use App\Models\User;
 
 it('prevents access to cancelling orders for unauthenticated users', function () {
-    $this->postJson(route('api.v1.orders.cancel'))
+    $this->postJson(route('api.v1.orders.cancel', ['order' => 1]))
         ->assertStatus(401);
 });
 
