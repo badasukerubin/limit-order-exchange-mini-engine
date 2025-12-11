@@ -119,6 +119,9 @@ import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import Echo from 'laravel-echo';
 import { useEcho } from '@laravel/echo-vue';
+import { useAuthStore } from '@/stores/auth.js';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 const orderForm = ref({ symbol: 'BTC', side: 'buy', price: 0, amount: 0 });
 const errors = ref({});
@@ -126,7 +129,7 @@ const profile = ref({ balance: 0, assets: {}, id: null });
 const orders = ref([]);
 const selectedSymbol = ref('BTC');
 
-const toast = (message) => alert(message);
+// const toast = (message) => alert(message);
 
 const getError = (field) => {
   const e = errors.value?.[field];
@@ -152,8 +155,6 @@ const getError = (field) => {
 const fetchProfile = async () => {
   try {
     const { data } = await axios.get('/api/v1/profile');
-
-    console.log(data);
 
 
     profile.value.balance = data.data?.balance ?? 0;
@@ -202,8 +203,7 @@ const submitOrder = async () => {
     await axios.post('/api/v1/orders', orderForm.value);
     orderForm.value.price = 0;
     orderForm.value.amount = 0;
-    await fetchOrders();
-    await fetchProfile();
+
   } catch (err) {
     // handle validation (422) and non-validation responses that only include message
     if (err.response?.status === 422) {
@@ -222,29 +222,45 @@ const submitOrder = async () => {
       errors.value = { general: message };
     }
   }
-
-  console.log(errors.value);
 };
 
 const buyOrders = computed(() => (orders.value || []).filter(o => o && o.side === 'buy'));
 const sellOrders = computed(() => (orders.value || []).filter(o => o && o.side === 'sell'));
 
+const patchProfileAndOrders = (updates, userId) => {
+  profile.value.balance = updates.balance ?? profile.value.balance;
 
-watch(() => profile.value.id, (id) => {
-  if (id) {
-    useEcho(`user.${id}`, '.order.matched',
-      (payload) => {
-        try {
-          console.log(payload);
-
-        } catch (e) {
-          console.error('Error processing OrderMatched event', e);
-        }
-      },
-    );
+  if (updates.assets && typeof updates.assets === 'object') {
+    profile.value.assets = { ...profile.value.assets, ...updates.assets };
+    profile.value.id = userId;
   }
-});
 
+  const newOpenOrders = updates.open_orders || [];
+
+  orders.value = [...newOpenOrders];
+
+  toast('Trade settled and Open Orders list updated!');
+};
+
+useEcho(`user.${useAuthStore().currentUser.id}`, '.order.matched',
+  (payload) => {
+    try {
+      console.log('Realtime payload:', payload);
+
+      const myUserId = useAuthStore().currentUser.id;
+      const updates = payload.updates?.[myUserId];
+
+      console.log('Order Matched Event Received. Replacing Open Orders list...');
+
+      if (updates) {
+        patchProfileAndOrders(updates, myUserId);
+      }
+
+    } catch (e) {
+      console.error('Error processing OrderMatched event', e);
+    }
+  },
+);
 
 onMounted(() => {
   fetchProfile();

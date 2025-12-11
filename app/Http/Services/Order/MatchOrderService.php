@@ -61,27 +61,25 @@ final class MatchOrderService
         $orderData['total'] = bcmul($price, $orderData['amount'], 8);
         $orderData['fee'] = bcmul($orderData['total'], self::COMMISSION_RATE, 8);
 
-        DB::transaction(function () use ($buyerOrder, $sellerOrder, $orderData) {
-            $buyer = $buyerOrder->user()->lockForUpdate()->first();
-            $seller = $sellerOrder->user()->lockForUpdate()->first();
+        $buyer = $buyerOrder->user()->lockForUpdate()->first();
+        $seller = $sellerOrder->user()->lockForUpdate()->first();
 
-            $buyerAsset = Asset::firstOrCreate(
-                ['user_id' => $buyer->id, 'symbol' => $buyerOrder->symbol],
-                ['amount' => 0, 'locked_amount' => 0]
-            );
+        $buyerAsset = Asset::firstOrCreate(
+            ['user_id' => $buyer->id, 'symbol' => $buyerOrder->symbol],
+            ['amount' => 0, 'locked_amount' => 0]
+        );
 
-            $sellerAsset = Asset::where('user_id', $seller->id)
-                ->where('symbol', $sellerOrder->symbol)
-                ->lockForUpdate()
-                ->first();
+        $sellerAsset = Asset::where('user_id', $seller->id)
+            ->where('symbol', $sellerOrder->symbol)
+            ->lockForUpdate()
+            ->first();
 
-            $trade = $this->handleTrade($buyer, $seller, $buyerAsset, $sellerAsset, $buyerOrder, $orderData);
+        $trade = $this->handleTrade($buyer, $seller, $buyerAsset, $sellerAsset, $buyerOrder, $orderData);
 
-            $buyerOrder->lockForUpdate()->update(['status' => StatusType::Filled]);
-            $sellerOrder->lockForUpdate()->update(['status' => StatusType::Filled]);
+        $buyerOrder->lockForUpdate()->update(['status' => StatusType::Filled]);
+        $sellerOrder->lockForUpdate()->update(['status' => StatusType::Filled]);
 
-            event(new OrderMatchedEvent($trade));
-        });
+        event(new OrderMatchedEvent($trade));
     }
 
     /**

@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 final class PlaceOrderService
 {
     /**
-     * @param  array{symbol:string,side:string,price:float,amount:float}  $data
+     * @param  array{symbol:string,side:string,price:string,amount:string}  $data
      */
     public function handle(User $user, array $data): Order
     {
@@ -37,19 +37,19 @@ final class PlaceOrderService
     }
 
     /**
-     * @param  array{symbol:string,side:string,price:float,amount:float}  $data
+     * @param  array{symbol:string,side:string,price:string,amount:string}  $data
      * @return array{user:User,locked_amount:string}
      */
     private function handlePlaceBuyOrder(User $user, array $data): array
     {
+        $user->lockForUpdate();
+
         $cost = bcmul($data['price'], $data['amount'], 8);
 
         if ($user->balance < $cost) {
             throw new UnprocessableEntityHttpException('Insufficient balance');
         }
 
-        // Lock user row for update
-        $user = User::where('id', $user->id)->lockForUpdate()->first();
         $user->balance = bcsub($user->balance, $cost, 8);
         $user->save();
 
@@ -60,7 +60,7 @@ final class PlaceOrderService
     }
 
     /**
-     * @param  array{symbol:string,side:string,price:float,amount:float}  $data
+     * @param  array{symbol:string,side:string,price:string,amount:string}  $data
      * @return array{user:User,locked_amount:string}
      */
     private function handlePlaceSellOrder(User $user, array $data): array

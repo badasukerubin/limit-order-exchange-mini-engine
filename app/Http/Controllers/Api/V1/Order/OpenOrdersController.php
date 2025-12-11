@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\V1\Order;
 
 use App\Enums\StatusType;
+use App\Events\Orders\OrderMatchedEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
+use App\Models\Trade;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
@@ -23,6 +25,8 @@ class OpenOrdersController extends Controller
             ->where('status', StatusType::Open->value)
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // event(new OrderMatchedEvent(Trade::first()));
 
         return OrderResource::collection($orders);
     }
